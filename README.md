@@ -6,6 +6,12 @@ The goal of this project is to identify sex-linked regions in these species base
 
 # Searching for sex-specific heterozygous positions
 
+First make tab delimited files out of the genotype files (gvcf files)
+```
+module load StdEnv/2020 vcftools/0.1.16
+zcat file.vcf.gz | vcf-to-tab > out.tab
+```
+
 For sex-linked regions, we expect divergence in the heterogametic sex and not the homogametic sex. We can identify these sites and map them.  
 
 Here is a perl script that will look for these sites in a tab delimited file:
