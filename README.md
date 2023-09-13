@@ -240,4 +240,257 @@ while ( my $line = <DATAINPUT>) {
 close OUTFILE1;
 ```
 
+# Plot Output with R
+
+```R
+setwd("/Users/Shared/Previously\ Relocated\ Items/Security/projects/2023_clivii_largeni_pygmaeus/parsetab")
+library(ggplot2)
+library(plyr)
+library(viridis)
+options(scipen=999)
+# Parsetab collects stats on these site patterns:
+# [1] "Fixed_divergence"  # each sex is homoz for a different nucleotide       
+# [2] "Sex_specific_heterozygosity" # this is the most stringent and should be used - all individuals
+        # from one sex are heteroz and all individuals of the other sex are homoz
+        # 1 means female-specific heterozygosity; -1 means male-specific heterozygosity
+# [3] "Sex_specific_SNP"  # a heterozygous genotype is found only in one sex          
+# [4] "Sex_specific_nucleotides" # I think this menas that a nucleotide is found in only one sex, 
+                                 # and that it can be homozygous or heterozygous
+
+
+# cliv WGS - this inputfile has only "Sex_specific_heterozygosity"
+dat <-read.table("allcliv_out_Sex_specific_heterozygosity.txt",header=F)
+dat <-read.table("alllarg_out_Sex_specific_heterozygosity.txt",header=F)
+dat <-read.table("allpygm_out_Sex_specific_heterozygosity.txt",header=F)
+
+
+colnames(dat) <- c("CHR","POS","TYPE","CATEGORY","n_FEMs","n_MALS")
+
+head(dat)
+
+
+
+# Make a column that summarizes the number of fems and male
+dat$FandM <- paste(dat$n_FEMs,dat$n_MALS,sep="_")
+
+dat$POS <- as.numeric(dat$POS)
+dat$CATEGORY <- as.numeric(dat$CATEGORY)
+dat$n_FEMs <- as.numeric(dat$n_FEMs)
+dat$n_MALS <- as.numeric(dat$n_MALS)
+
+unique(dat$FandM)
+
+summary <- count(dat, "FandM");summary
+
+# remove rows where FandM is "1_1" - this means only 2 individuals are genotyped
+dat <- dat[dat$FandM != "1_1", ]
+summary <- count(dat, "FandM");summary
+
+only_55_dat <- dat[dat$FandM == "5_5", ]
+
+# make separate dataframes for female-specific and male-specific heterozygosity
+fem_specific <- dat[dat$CATEGORY == 1, ]
+mal_specific <- dat[dat$CATEGORY == -1, ]
+summary <- count(fem_specific, "FandM");summary
+summary <- count(mal_specific, "FandM");summary
+
+fem_specific_noscaf <- fem_specific[fem_specific$CHR != "Scaffolds", ]
+
+fplot<-ggplot(fem_specific, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(linewidth=0.15)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+fplot_noscaf<-ggplot(fem_specific_noscaf, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(linewidth=0.15)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+mplot<-ggplot(mal_specific, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(linewidth=0.15)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+# make the combined plot more stringent
+fem_specific_noscaf <- fem_specific_noscaf[(fem_specific_noscaf$FandM != "1_2")&
+                                               (fem_specific_noscaf$FandM != "2_1")&
+                                               (fem_specific_noscaf$FandM != "1_3")&
+                                               (fem_specific_noscaf$FandM != "3_1")&
+                                               (fem_specific_noscaf$FandM != "2_2"), ]
+
+fplot_allcombined<-ggplot(fem_specific_noscaf, aes(x = POS/1000000)) +
+    geom_density(linewidth=0.15)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./pygm_female_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    fplot
+dev.off()
+
+pdf("./pygm_male_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    mplot
+dev.off()
+
+pdf("./pygm_female_noscaf_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    fplot_noscaf
+dev.off()
+
+pdf("./larg_female_specific_allcombined.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    fplot_allcombined
+dev.off()
+
+
+
+# make separate 55 dataframes for female-specific and male-specific heterozygosity
+fem_55_specific <- dat[only_55_dat$CATEGORY == 1, ]
+mal_55_specific <- dat[only_55_dat$CATEGORY == -1, ]
+summary <- count(fem_55_specific, "FandM");summary
+summary <- count(mal_55_specific, "FandM");summary
+
+
+f55plot<-ggplot(fem_55_specific, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(linewidth=0.15)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_55_female_specific.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    f55plot
+dev.off()
+
+# need to add endpoints to prevent densities from tanking
+dat[nrow(dat) + 1,] <- c("Chr1L","232529967","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr1S","196169796","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr2L","184566229","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr2S","167897111","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr3L","145564449","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr3S","127416162","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr4L","156120765","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr4S","131359388","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr5L","174499024","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr5S","139053354","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr6L","157843502","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr6S","137668413","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr7L","136892544","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr7S","105895006","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr8L","123836259","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr8S","105436522","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr9_10L","135078614","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr9_10S","110702964","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Scaffolds","42147407","Sex_specific_heterozygosity","1","5","5")
+#View(all_SL)
+
+
+
+
+
+
+View(all_SL)
+# write.csv(all_SL,"all_SL_mappedtoXL.csv", row.names = FALSE)
+other_types_of_SL <- dat[((dat$TYPE == "Sex_specific_SNP")|(dat$TYPE == "Fixed_divergence")|(dat$TYPE == "Sex_specific_nucleotides")) &
+                  (as.numeric(dat$n_FEMs) >= 10) &  
+                  (as.numeric(dat$n_MALS) >= 10),]
+View(other_types_of_SL)
+high_het_SL <- all_SL[(as.numeric(all_SL$POS) >=140372057)&(as.numeric(all_SL$POS) <=140433397),]
+View(high_het_SL) # lots!
+the_rest_of_dmrt1L <- all_SL[(as.numeric(all_SL$POS) >140449273)&(as.numeric(all_SL$POS) <=140462368),]
+View(the_rest_of_dmrt1L) # nothing!
+
+high_het_other_SL <- other_types_of_SL[(as.numeric(other_types_of_SL$POS) >=140372057)&(as.numeric(other_types_of_SL$POS) <=140433397),]
+View(high_het_other_SL) # nothing!
+the_other_rest_of_dmrt1L <- other_types_of_SL[(as.numeric(other_types_of_SL$POS) >140449273)&(as.numeric(other_types_of_SL$POS) <=140462368),]
+View(the_other_rest_of_dmrt1L) # nothing!
+
+#    geom_rect(aes(xmin=140372057,xmax=140433397,ymin=-2,ymax=Inf),color="blue",alpha=0) + # high heteroz
+#    geom_rect(aes(xmin=140462145,xmax=140462368,ymin=-2,ymax=Inf),color="red",alpha=0) + # XB dmrt1L ex2
+#    geom_rect(aes(xmin=140449273,xmax=140449553,ymin=-2,ymax=Inf),color="red",alpha=0) + # XB dmrt1L ex3
+#    geom_rect(aes(xmin=140395623,xmax=140395753,ymin=-2,ymax=Inf),color="red",alpha=0) + # XB dmrt1L ex4
+#    ex5 missing
+#    geom_rect(aes(xmin=140449273,xmax=140449319,ymin=-2,ymax=Inf),color="red",alpha=0) + # XB dmrt1L ex6    
+    
+all_SL_ZW <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+              (dat$n_FEMs == "5") &  
+              (dat$n_MALS == "5") &
+              (dat$CATEGORY == "1")   ,]
+
+all_SL_XY <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                     (dat$n_FEMs == "9") &  
+                     (dat$n_MALS == "11") &
+                     (dat$CATEGORY == "-1")   ,]
+
+dim(all_SL_ZW)
+dim(all_SL_XY)
+View(all_SL)
+View(all_SL_XY)
+
+
+
+
+
+library(plyr)
+summary <- count(all_SL_ordered, "CHR")
+chr_sizes <- c(232529967,196169796,184566229,167897111,145564449,127416162,156120765,
+               131359388,174499024,139053354,157843502,137668413,136892544,105895006,123836259,
+               105436522,135078614,110702964,42147407)
+summary <- cbind(summary,chr_sizes)
+summary$proportions <- summary$freq/summary$chr_sizes
+summary[summary$proportions == max(summary$proportions),]
+
+
+all_SL_ordered <- all_SL[order(all_SL$CHR, all_SL$POS),]
+
+#View(temp)
+temp <-c("red","blue")
+
+p<-ggplot(all_SL_ordered, aes(x = POS/1000000)) +
+    geom_density()+
+    #geom_vline(xintercept=49000000)+ 
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlab("Position") + ylab("Density") +
+    ylim(0,1) +
+    theme_bw()
+
+
+pdf("./Clivi_female_specific_heterozygosity.pdf",w=10, h=30.0, version="1.4", bg="transparent")
+p
+dev.off()
+
+
+# filter data to retain only sites with a reasonable amount of
+# genotypes in both sexes
+
+subset_data <- dat[(dat$n_FEMs + dat$n_MALS) >= 10,]
+dim(subset_data)
+
+
+p<-ggplot(dat, aes(x=POS, y=CATEGORY*(n_FEMs+n_MALS))) + 
+    # add points
+    geom_point(size=2, alpha = 0.7 ) +
+    # add loess line
+    # geom_smooth() +
+    # color the stuff the way I want
+    facet_wrap(~CHR, ncol = 1) +
+    # get rid of gray background
+    theme_bw()
+pdf("./out_0.5.pdf",w=18, h=18.0, version="1.4", bg="transparent")
+    p
+dev.off()
+
+
+```
+
 
