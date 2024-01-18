@@ -17,6 +17,7 @@ For sex-linked regions, we expect divergence in the heterogametic sex and not th
 
 Here is a perl script that will look for these sites in a tab delimited file:
 ```perl #!/usr/bin/env perl
+#!/usr/bin/env perl
 use strict;
 use warnings;
 use lib qw(~/perl_modules);
@@ -56,15 +57,13 @@ use List::MoreUtils qw/ uniq /;
 
 # het_sites.out sex_specific_sites.out diverged_sites.out are the output files that have the positions and chr of interesting sites
 
-# example for 2023_clivii
-# clivii
-# perl Parse_tab.pl tabfile 1111100000222222222222222222 interesting_sites.out 0.5
-# largeni
-# perl Parse_tab.pl tabfile 2222222222111110000022222222 interesting_sites.out 0.5
-# pyg
-# perl Parse_tab.pl tabfile 2222222222222222222211110000 interesting_sites.out 0.5
-    
+# example for clivii
 # perl Parse_tab.pl clivii_unfiltered_removed_allchrs.vcf.tab 111111111111111111111111110000000000000000000 interesting_sites.out 0.35
+# include only Eritrea:
+# 222222221111111111111112222222222200000000222
+
+# exclude Eritrea:
+# 111111112222222222222221110000000022222222000
 
 # Example for XB_WGS
 # perl Parse_tab.pl XB_WGS_not_filtered_allchrs.vcf.gz.tab 100110011101010000102222 interesting_sites.out 0.5
