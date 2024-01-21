@@ -1,3 +1,9 @@
+# Kmers!
+I'm adapting a pipeline I developed earlier for XT_WZY:
+```
+https://github.com/evansbenj/XT_WW_WZ_WY/blob/main/kmers_unique_to_Y_and_W.md
+```
+
 # Install meryl for counting and intersecting kmer dbs
 
 I installed meryl (https://github.com/marbl/meryl) here on graham:
