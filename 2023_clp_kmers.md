@@ -44,3 +44,43 @@ Make meryl db like this:
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin/meryl count ${1} threads=4 memory=128 k=29 ou
 tput ${1}_meryldb.out
 ```
+
+# Make intersection sum for all samples within each sex
+```
+#!/bin/sh
+#SBATCH --job-name=meryl_intersect
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=2:00:00
+#SBATCH --mem=128gb
+#SBATCH --output=meryl_intersect.%J.out
+#SBATCH --error=meryl_intersect.%J.err
+#SBATCH --account=def-ben
+
+# intersect-sum is makes the sum of counts that are in both
+# this is not the union
+
+/home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl intersect-sum ${1} ${2} output ${1}_${2}_intersect_sum.db
+```
+
+# Subtract these databases from each other
+This should be done in each way (F-M and M-F)
+```
+#!/bin/sh
+#SBATCH --job-name=meryl_difference
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=2:00:00
+#SBATCH --mem=128gb
+#SBATCH --output=meryl_difference.%J.out
+#SBATCH --error=meryl_difference.%J.err
+#SBATCH --account=def-ben
+
+
+/home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl difference ${1} ${2} output in_${1}_not_${2}_differnece.db
+```
+
+# print this output
+```
+/home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl print in_all_fems_Z23338_Z23340_Z23341_Z23342intersectsum.db_not_all_males_Z23337_Z23349_Z23339_Z23350_intersect_sum.db_differnece.db > fems_only_kmers.txt
+```
