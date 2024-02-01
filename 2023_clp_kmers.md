@@ -84,3 +84,5 @@ This should be done in each way (F-M and M-F)
 ```
 /home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl print in_all_fems_Z23338_Z23340_Z23341_Z23342intersectsum.db_not_all_males_Z23337_Z23349_Z23339_Z23350_intersect_sum.db_differnece.db > fems_only_kmers.txt
 ```
+
+I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
