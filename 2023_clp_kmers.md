@@ -86,3 +86,17 @@ This should be done in each way (F-M and M-F)
 ```
 
 I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
+
+```
+#!/bin/sh
+#SBATCH --job-name=cookie_extract
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=2:00:00
+#SBATCH --mem=24gb
+#SBATCH --output=cookie_extract.%J.out
+#SBATCH --error=cookie_extract.%J.err
+#SBATCH --account=def-ben
+
+/home/ben/scratch/2023_clp_for_real/bin/Cookiecutter/bin/extract -1 ${1} -2 ${2} -o ${4} --fragments ${3}
+```
