@@ -85,6 +85,7 @@ This should be done in each way (F-M and M-F)
 /home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl print in_all_fems_Z23338_Z23340_Z23341_Z23342intersectsum.db_not_all_males_Z23337_Z23349_Z23339_Z23350_intersect_sum.db_differnece.db > fems_only_kmers.txt
 ```
 
+# Extract paired reads that have sex-specific kmers
 I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
 
 ```
@@ -100,3 +101,5 @@ I'm going to use cookie cutter to extract reads with these kmers (https://github
 
 /home/ben/scratch/2023_clp_for_real/bin/Cookiecutter/bin/extract -1 ${1} -2 ${2} -o ${4} --fragments ${3}
 ```
+
+# Assemble sex-specific reads
