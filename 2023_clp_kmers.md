@@ -133,3 +133,7 @@ Trinity --seqType fq --samples_file ccdc_fastq_list.txt --CPU "${SLURM_CPUS_PER_
    --full_cleanup --max_memory 110G --min_kmer_cov 2 --bflyCalculateCPU \
    --include_supertranscripts --output ccdc_trinity_assembly_all_batches
 ```
+
+```
+/mnt/expressions/ben_evans/bin/trinityrnaseq/Trinity --seqType fq --left R7937_nuclear_cap_r1.fastq --right R7937_nuclear_cap_r2.fastq --no_normalize_reads --max_memory 10G --KMER_SIZE 29
+```
