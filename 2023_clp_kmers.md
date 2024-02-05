@@ -102,6 +102,15 @@ I'm going to use cookie cutter to extract reads with these kmers (https://github
 /home/ben/scratch/2023_clp_for_real/bin/Cookiecutter/bin/extract -1 ${1} -2 ${2} -o ${4} --fragments ${3}
 ```
 
+# Combine se reads with R1 reads
+
+
+
+Need to change the header of the SE reverse reads after concatenating:
+```
+sed -i 's/2:N:0:/1:N:0:/g'  male_specific_concat_all_left.fastq
+```
+
 # Assemble sex-specific reads
 
 ```
@@ -127,7 +136,8 @@ here's the trinity assemnbly script:
 #SBATCH --account=def-ben
 
 
-module load StdEnv/2020 gcc/9.3.0 openmpi/4.0.3 trinity/2.12.0
+module purge
+module load StdEnv/2020 gcc/9.3.0 salmon/1.7.0 samtools/1.17 jellyfish/2.3.0  trinity/2.14.0 python scipy-stack
 
 Trinity --seqType fq --samples_file ccdc_fastq_list.txt --CPU "${SLURM_CPUS_PER_TASK}" \
    --full_cleanup --max_memory 110G --min_kmer_cov 2 --bflyCalculateCPU \
