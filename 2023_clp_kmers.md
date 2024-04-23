@@ -158,7 +158,7 @@ Using this script:
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=4:00:00
-#SBATCH --mem=2gb
+#SBATCH --mem=16gb
 #SBATCH --output=minimap2.%J.out
 #SBATCH --error=minimap2.%J.err
 #SBATCH --account=rrg-ben
