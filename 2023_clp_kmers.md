@@ -172,3 +172,8 @@ which is here:
 ```
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/ben_scripts
 ```
+
+Now pull out the reads with that map to a chromosome like this:
+```
+egrep 'Chr1L|Chr2L|Chr3L|Chr4L|Chr5L|Chr6L|Chr7L|Chr8L|Chr9_10L|Chr9_10S|Chr8S|Chr7S|Chr6S|Chr5S|Chr4S|Chr3S|Chr2S|Chr1S' larg_fem_only_trinity_denovo.fasta_alignments.sam >larg_fem_only_mappings.txt
+```
