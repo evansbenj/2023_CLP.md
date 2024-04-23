@@ -177,3 +177,119 @@ Now pull out the reads with that map to a chromosome like this:
 ```
 egrep 'Chr1L|Chr2L|Chr3L|Chr4L|Chr5L|Chr6L|Chr7L|Chr8L|Chr9_10L|Chr9_10S|Chr8S|Chr7S|Chr6S|Chr5S|Chr4S|Chr3S|Chr2S|Chr1S' larg_fem_only_trinity_denovo.fasta_alignments.sam >larg_fem_only_mappings.txt
 ```
+
+# Plotting mappings using histograms and differences between histograms:
+```
+setwd("/Users/Shared/Previously\ Relocated\ Items/Security/projects/2023_clivii_largeni_pygmaeus/kmers")
+library(ggplot2)
+library(plyr)
+library(viridis)
+options(scipen=999)
+
+
+dat <-read.table("larg_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
+dat <-read.table("larg_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
+dat <-read.table("cliv_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
+dat <-read.table("cliv_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
+
+colnames(dat) <- c("query","query_len","query_start","query_end","strand","target","target_len",
+                   "target_start","target_end","n_matches","n_bp","map_qual")
+head(dat)
+
+# Get rid of the scaffold data
+my_df_chrsonly <- dat[(dat$target == "Chr1L")|(dat$target == "Chr2L")|(dat$target == "Chr3L")|
+                          (dat$target == "Chr4L")|(dat$target == "Chr5L")|(dat$target == "Chr6L")|
+                          (dat$target == "Chr7L")|(dat$target == "Chr8L")|(dat$target == "Chr9_10L")|
+                          (dat$target == "Chr1S")|(dat$target == "Chr2S")|(dat$target == "Chr3S")|
+                          (dat$target == "Chr4S")|(dat$target == "Chr5S")|(dat$target == "Chr6S")|
+                          (dat$target == "Chr7S")|(dat$target == "Chr8S")|(dat$target == "Chr9_10S"),]
+
+my_df_chrsonly$target_start <- as.numeric(my_df_chrsonly$target_start)
+
+png(filename = "cliv_femonly_kmer_mapping_histo_.png",w=1200, h=1800,units = "px", bg="transparent")
+    ggplot(my_df_chrsonly, aes(x=target_start/1000000)) +
+        #scale_fill_manual(values=c("red","blue"))+
+        geom_histogram(binwidth = 0.1)+
+        xlab("Position(Mb)") + ylab("Count") +
+        facet_wrap(~ target, ncol=1) + 
+        theme_classic() +
+        theme(text = element_text(size = 20))
+dev.off()
+
+
+# make a histogram of the difference between the fem and mal histograms...
+
+
+fem_dat <-read.table("larg_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
+mal_dat <-read.table("larg_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
+fem_dat <-read.table("cliv_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
+mal_dat <-read.table("cliv_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
+
+colnames(fem_dat) <- c("query","query_len","query_start","query_end","strand","target","target_len",
+                   "target_start","target_end","n_matches","n_bp","map_qual")
+colnames(mal_dat) <- c("query","query_len","query_start","query_end","strand","target","target_len",
+                       "target_start","target_end","n_matches","n_bp","map_qual")
+
+fem_dat$sex <- "fem"
+mal_dat$sex <- "mal"
+
+all_dat <- rbind(fem_dat,mal_dat)
+
+# Get rid of the scaffold data
+all_dat_chrsonly <- all_dat[(all_dat$target == "Chr1L")|(all_dat$target == "Chr2L")|(all_dat$target == "Chr3L")|
+                          (all_dat$target == "Chr4L")|(all_dat$target == "Chr5L")|(all_dat$target == "Chr6L")|
+                          (all_dat$target == "Chr7L")|(all_dat$target == "Chr8L")|(all_dat$target == "Chr9_10L")|
+                          (all_dat$target == "Chr1S")|(all_dat$target == "Chr2S")|(all_dat$target == "Chr3S")|
+                          (all_dat$target == "Chr4S")|(all_dat$target == "Chr5S")|(all_dat$target == "Chr6S")|
+                          (all_dat$target == "Chr7S")|(all_dat$target == "Chr8S")|(all_dat$target == "Chr9_10S"),]
+
+all_dat_chrsonly$target_start <- as.numeric(all_dat_chrsonly$target_start)
+
+# define an empty df
+all_diffs <- data.frame(xmin = c("NA"),
+                 xmax = c("NA"),
+                 variable = c("NA"),
+                 value = c("NA"),
+                 Chr = c("NA")
+                )
+
+
+# plotting difference; modified from here:
+# https://stackoverflow.com/questions/36049729/r-ggplot2-get-histogram-of-difference-between-two-groups
+for (chromosome in unique(all_dat_chrsonly$target)) {
+   # chromosome <- "Chr1L"
+    all_dat_chrsonly <- all_dat[(all_dat$target == chromosome),]
+    p <- ggplot(all_dat_chrsonly, aes(x=target_start/1000000, group=sex, color=sex, fill=sex)) + 
+        geom_histogram(binwidth = 0.1, position="identity") +
+        facet_wrap(~ target, ncol=1)
+    
+    p_data <- as.data.table(ggplot_build(p)$data[1])[,.(count,xmin,xmax,group)]
+    p1_data <- p_data[group==1]
+    p2_data <- p_data[group==2]
+
+    newplot_data <- merge(p1_data, p2_data, by=c('xmin','xmax'), suffixes = c('.p1','.p2'),allow.cartesian=TRUE)
+    newplot_data <- newplot_data[,diff:=count.p1 - count.p2]
+    setnames(newplot_data, old=c('count.p1','count.p2'), new=c('k1','k2'),skip_absent=TRUE)
+
+    df2 <- melt(newplot_data,id.vars =c('xmin','xmax'),measure.vars=c('k1','diff','k2'))
+    only_diff <- df2[(df2$variable == "diff"),]
+    only_diff$Chr <- chromosome
+    all_diffs <- rbind(all_diffs,only_diff)
+}
+
+# get rid of first row
+all_diffs = all_diffs[-1,]
+
+all_diffs$xmin <- as.numeric(all_diffs$xmin)
+all_diffs$xmax <- as.numeric(all_diffs$xmax)
+all_diffs$value <- as.numeric(all_diffs$value)
+
+
+difference_plot <- ggplot(all_diffs, aes(xmin=xmin,xmax=xmax,ymax=value,ymin=0)) + 
+    geom_rect() +
+    facet_wrap(~ Chr, ncol=1)
+
+png(filename = "cliv_kmer_mapping_histo_difference.png",w=1200, h=1800,units = "px", bg="transparent")
+    difference_plot
+dev.off()
+```
