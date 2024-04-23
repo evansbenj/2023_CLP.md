@@ -145,3 +145,30 @@ Are here on graham:
 ```
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/raw_data/larg_pe_trim/combined_male_reads
 ```
+# Map to XL genome using minimap2
+
+```
+module load StdEnv/2023 minimap2/2.26
+minimap2 -x asm10 -a --secondary=no -t8 ../../../../2021_XL_v10_refgenome/XENLA_10.1_genome.fa larg_mal_only_trinity_denovo.fasta >alignments.sam 
+```
+Using this script:
+```
+#!/bin/sh
+#SBATCH --job-name=minimap2
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=4:00:00
+#SBATCH --mem=2gb
+#SBATCH --output=minimap2.%J.out
+#SBATCH --error=minimap2.%J.err
+#SBATCH --account=rrg-ben
+
+# sbatch 2024_minimap2.sh ref.fasta query.fasta
+
+module load StdEnv/2023 minimap2/2.26
+minimap2 -x asm10 -a --secondary=no -t8 ${1} ${2} > ${2}_alignments.sam
+```
+which is here:
+```
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/ben_scripts
+```
