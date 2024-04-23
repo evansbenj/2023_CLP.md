@@ -166,7 +166,7 @@ Using this script:
 # sbatch 2024_minimap2.sh ref.fasta query.fasta
 
 module load StdEnv/2023 minimap2/2.26
-minimap2 -x asm10 -a --secondary=no -t8 ${1} ${2} > ${2}_alignments.sam
+minimap2 -x asm10 --secondary=no -t8 ${1} ${2} > ${2}_alignments.paf
 ```
 which is here:
 ```
