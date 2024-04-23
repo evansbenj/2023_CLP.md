@@ -138,3 +138,10 @@ using commands like this one:
 ```
 /usr/local/trinity/Trinity --seqType fq --max_memory 120G --single all_pygm_malspecific_R1R2.fastq --CPU 12 --normalize_reads
 ```
+
+# De novo assembled sex-specific contigs
+
+Are here on graham:
+```
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/raw_data/larg_pe_trim/combined_male_reads
+```
