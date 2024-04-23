@@ -129,3 +129,12 @@ module load StdEnv/2020 gcc/9.3.0 salmon/1.7.0 samtools/1.17 jellyfish/2.3.0  tr
 
 Trinity --seqType fq --max_memory 50G --left ${1}  --right ${2} --CPU 6
 ```
+
+This either did not work or did not finish on computecanada. Instead it did work on info2020 in this directory:
+```
+/home/ben/2024_cliv_larg_pygm/raw_data/
+```
+using commands like this one:
+```
+/usr/local/trinity/Trinity --seqType fq --max_memory 120G --single all_pygm_malspecific_R1R2.fastq --CPU 12 --normalize_reads
+```
