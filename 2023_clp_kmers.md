@@ -184,6 +184,7 @@ setwd("/Users/Shared/Previously\ Relocated\ Items/Security/projects/2023_clivii_
 library(ggplot2)
 library(plyr)
 library(viridis)
+library(dplyr)
 options(scipen=999)
 
 
@@ -191,10 +192,13 @@ dat <-read.table("larg_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
 dat <-read.table("larg_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
 dat <-read.table("cliv_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
 dat <-read.table("cliv_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
+dat <-read.table("pygm_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
+dat <-read.table("pygm_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
 
 colnames(dat) <- c("query","query_len","query_start","query_end","strand","target","target_len",
                    "target_start","target_end","n_matches","n_bp","map_qual")
 head(dat)
+
 
 # Get rid of the scaffold data
 my_df_chrsonly <- dat[(dat$target == "Chr1L")|(dat$target == "Chr2L")|(dat$target == "Chr3L")|
@@ -204,10 +208,17 @@ my_df_chrsonly <- dat[(dat$target == "Chr1L")|(dat$target == "Chr2L")|(dat$targe
                           (dat$target == "Chr4S")|(dat$target == "Chr5S")|(dat$target == "Chr6S")|
                           (dat$target == "Chr7S")|(dat$target == "Chr8S")|(dat$target == "Chr9_10S"),]
 
+# save only mappings with unique matches
+my_df_chrsonly_unique <- my_df_chrsonly %>% 
+    distinct(query, .keep_all = T)
+# now subset to include only mappings with map_qual>=60
+my_df_chrsonly_unique_mq60 <- my_df_chrsonly_unique[(my_df_chrsonly_unique$map_qual >=60),]
+
+
 my_df_chrsonly$target_start <- as.numeric(my_df_chrsonly$target_start)
 
-png(filename = "cliv_femonly_kmer_mapping_histo_.png",w=1200, h=1800,units = "px", bg="transparent")
-    ggplot(my_df_chrsonly, aes(x=target_start/1000000)) +
+png(filename = "larg_femonly_kmer_mapping_histo_.png",w=1200, h=1800,units = "px", bg="transparent")
+    ggplot(my_df_chrsonly_unique_mq60, aes(x=target_start/1000000)) +
         #scale_fill_manual(values=c("red","blue"))+
         geom_histogram(binwidth = 0.1)+
         xlab("Position(Mb)") + ylab("Count") +
@@ -218,7 +229,7 @@ dev.off()
 
 
 # make a histogram of the difference between the fem and mal histograms...
-
+library(data.table)
 
 fem_dat <-read.table("larg_fem_only_trinity_denovo.fasta_alignments.paf",header=F)
 mal_dat <-read.table("larg_mal_only_trinity_denovo.fasta_alignments.paf",header=F)
@@ -233,7 +244,21 @@ colnames(mal_dat) <- c("query","query_len","query_start","query_end","strand","t
 fem_dat$sex <- "fem"
 mal_dat$sex <- "mal"
 
-all_dat <- rbind(fem_dat,mal_dat)
+# save only mappings with unique matches
+fem_dat_unique <- fem_dat %>% 
+    distinct(query, .keep_all = T)
+# now subset to include only mappings with map_qual>=60
+fem_dat_unique_mq60 <- fem_dat_unique[(fem_dat_unique$map_qual >=60),]
+
+# save only mappings with unique matches
+mal_dat_unique <- mal_dat %>% 
+    distinct(query, .keep_all = T)
+# now subset to include only mappings with map_qual>=60
+mal_dat_unique_mq60 <- mal_dat_unique[(mal_dat_unique$map_qual >=60),]
+
+
+
+all_dat <- rbind(fem_dat_unique_mq60,mal_dat_unique_mq60)
 
 # Get rid of the scaffold data
 all_dat_chrsonly <- all_dat[(all_dat$target == "Chr1L")|(all_dat$target == "Chr2L")|(all_dat$target == "Chr3L")|
@@ -242,6 +267,8 @@ all_dat_chrsonly <- all_dat[(all_dat$target == "Chr1L")|(all_dat$target == "Chr2
                           (all_dat$target == "Chr1S")|(all_dat$target == "Chr2S")|(all_dat$target == "Chr3S")|
                           (all_dat$target == "Chr4S")|(all_dat$target == "Chr5S")|(all_dat$target == "Chr6S")|
                           (all_dat$target == "Chr7S")|(all_dat$target == "Chr8S")|(all_dat$target == "Chr9_10S"),]
+
+
 
 all_dat_chrsonly$target_start <- as.numeric(all_dat_chrsonly$target_start)
 
@@ -289,7 +316,7 @@ difference_plot <- ggplot(all_diffs, aes(xmin=xmin,xmax=xmax,ymax=value,ymin=0))
     geom_rect() +
     facet_wrap(~ Chr, ncol=1)
 
-png(filename = "cliv_kmer_mapping_histo_difference.png",w=1200, h=1800,units = "px", bg="transparent")
+png(filename = "larg_kmer_mapping_histo_difference.png",w=1200, h=1800,units = "px", bg="transparent")
     difference_plot
 dev.off()
 ```
