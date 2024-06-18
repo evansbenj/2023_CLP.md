@@ -15,7 +15,7 @@ in case the command doesn't work:
 export PATH=/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin:$PATH
 ```
 
-Make meryl db like this:
+Make meryl db for forward and reverse reads (separately) like this:
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl
