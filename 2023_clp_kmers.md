@@ -45,7 +45,29 @@ Make meryl db for forward and reverse reads (separately) like this:
 tput ${1}_meryldb.out
 ```
 
+# Make a union-sum for each  sample
+This makes a new kmer db of kmers that are in the for or rev read, or in both. The count is the sum over the for and rev db.
+
+```
+#!/bin/sh
+#SBATCH --job-name=meryl
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=48:00:00
+#SBATCH --mem=132gb
+#SBATCH --output=meryl.%J.out
+#SBATCH --error=meryl.%J.err
+#SBATCH --account=def-ben
+
+
+# sbatch 2020_meryl_union_kmer_dbs.sh db1 db2 out
+
+/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum ${1} ${2} threads=4 memory=128 k=29 output ${3}
+```
+
 # Make intersection sum for all samples within each sex
+This requires a kmer to be present in all samples from a given sex. This should cut down on background stemming from sample-specific SNPs
+
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl_intersect
