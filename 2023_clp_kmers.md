@@ -3,6 +3,7 @@ I'm adapting a pipeline I developed earlier for XT_WZY:
 ```
 https://github.com/evansbenj/XT_WW_WZ_WY/blob/main/kmers_unique_to_Y_and_W.md
 ```
+# Kmer size 21 for clp!
 
 # Install meryl for counting and intersecting kmer dbs
 
@@ -41,8 +42,7 @@ Make meryl db for forward and reverse reads (separately) like this:
 # ../raw_data/NS.1462.004.IDT_i7_126---IDT_i5_126.XT11_WW_R2.fastq.gz
 
 
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin/meryl count ${1} threads=4 memory=128 k=29 ou
-tput ${1}_meryldb.out
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin/meryl count ${1} threads=4 memory=128 k=21 output ${1}_meryldb.out
 ```
 
 # Make a union-sum for each  sample
@@ -62,7 +62,7 @@ This makes a new kmer db of kmers that are in the for or rev read, or in both. T
 
 # sbatch 2020_meryl_union_kmer_dbs.sh db1 db2 out
 
-/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum ${1} ${2} threads=4 memory=128 k=29 output ${3}
+/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum ${1} ${2} threads=4 memory=128 k=21 output ${3}
 ```
 
 # Make intersection sum for all samples within each sex
