@@ -1,4 +1,10 @@
 # Kmers!
+
+path for 2024_clp:
+```
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm
+```
+
 I'm adapting a pipeline I developed earlier for XT_WZY:
 ```
 https://github.com/evansbenj/XT_WW_WZ_WY/blob/main/kmers_unique_to_Y_and_W.md
