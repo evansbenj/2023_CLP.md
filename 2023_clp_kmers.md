@@ -191,15 +191,15 @@ This either did not work or did not finish on computecanada. Instead it did work
 ```
 using commands like this one:
 ```
-/usr/local/trinity/Trinity --seqType fq --max_memory 120G --single combined_reads.fastq --no_normalize_reads --run_as_paired --CPU 12 
+/usr/local/trinity/Trinity --seqType fq --max_memory 120G --single 2024_pygm_femspecific_goodkmers.fq --CPU 12 --normalize_reads
 ```
-as suggested here:
+as suggested here, I combined the paired and single end reads:
 ```
 https://github.com/trinityrnaseq/trinityrnaseq/wiki/How-do-I-combine-reads%3F
 ```
-This is an old command that also worked:
+Here is the assembly for X. pygmaeus with 29mers and 8 females, 8 males:
 ```
-/usr/local/trinity/Trinity --seqType fq --max_memory 120G --single all_pygm_malspecific_R1R2.fastq --CPU 12 --normalize_reads
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/fem_pygm
 ```
 
 # De novo assembled sex-specific contigs
