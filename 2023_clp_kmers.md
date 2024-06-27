@@ -120,9 +120,13 @@ This should be done in each way (F-M and M-F)
 
 /home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl difference ${1} ${2} output ${3}_differnece.db
 ```
-This is the meryl db of the female-specifc kmers:
+This is the meryl db of the female-specifc kmers for pygm:
 ```
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/fem_pygm/in_all_fem_notinanyof_8malez_differnece.db
+```
+This directory has meryl dbs of female-specific and male-specific 21mer databases for clivii:
+```
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/raw_data/cliv_pe_trim
 ```
 
 # print this output
