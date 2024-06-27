@@ -133,6 +133,11 @@ This is the meryl db of the female-specifc kmers:
 # Extract paired reads that have sex-specific kmers
 I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
 
+According to this example, the format of the kmer file is almost the same as the output of meryl, except there are spaces instead of tabs between the kmer and the counts:
+```
+https://github.com/NikoLichi/Cookiecutter/blob/master/data/alpha.dat
+```
+
 ```
 #!/bin/sh
 #SBATCH --job-name=cookie_extract
