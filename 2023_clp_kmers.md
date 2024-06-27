@@ -37,19 +37,6 @@ Make meryl db for forward and reverse reads (separately) like this:
 #SBATCH --account=def-ben
 
 
-# sbatch 2020_meryl_make_kmerdb.sh fastqfile
-# ../raw_data/NS.1462.004.IDT_i7_102---IDT_i5_102.XT7_WY_R1.fastq.gz
-# ../raw_data/NS.1462.004.IDT_i7_102---IDT_i5_102.XT7_WY_R2.fastq.gz
-# ../raw_data/NS.1462.004.IDT_i7_114---IDT_i5_114.XT10_trim.R1_single.fq.gz
-# ../raw_data/NS.1462.004.IDT_i7_114---IDT_i5_114.XT10_trim.R2_single.fq.gz
-# ../raw_data/NS.1462.004.IDT_i7_114---IDT_i5_114.XT10_WZ_R1.fastq.gz
-# ../raw_data/NS.1462.004.IDT_i7_114---IDT_i5_114.XT10_WZ_R2.fastq.gz
-# ../raw_data/NS.1462.004.IDT_i7_126---IDT_i5_126.XT11_trim.R1_single.fq.gz
-# ../raw_data/NS.1462.004.IDT_i7_126---IDT_i5_126.XT11_trim.R2_single.fq.gz
-# ../raw_data/NS.1462.004.IDT_i7_126---IDT_i5_126.XT11_WW_R1.fastq.gz
-# ../raw_data/NS.1462.004.IDT_i7_126---IDT_i5_126.XT11_WW_R2.fastq.gz
-
-
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin/meryl count ${1} threads=4 memory=128 k=29 output ${1}_meryldb.out
 ```
 
@@ -66,7 +53,6 @@ This makes a new kmer db of kmers that are in the for or rev read, or in both. T
 #SBATCH --output=meryl.%J.out
 #SBATCH --error=meryl.%J.err
 #SBATCH --account=def-ben
-
 
 # sbatch 2020_meryl_union_kmer_dbs.sh db1 db2 out
 
@@ -93,7 +79,32 @@ This requires a kmer to be present in all samples from a given sex. This should 
 /home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl intersect-sum ${1} ${2} output ${1}_${2}_intersect_sum.db
 ```
 
-# Subtract these databases from each other
+# Make a union-sum of all samples within each sex (this will be substracted from the intersect-sum for each sex)
+
+```
+#!/bin/sh
+#SBATCH --job-name=meryl_unionsum
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=2:00:00
+#SBATCH --mem=128gb
+#SBATCH --output=meryl_unionsum.%J.out
+#SBATCH --error=meryl_unionsum.%J.err
+#SBATCH --account=rrg-ben
+
+# make symbolic links so that all dbs are in one directory
+# and launch this in that directory
+# sbatch 2020_meryl_union_kmer_dbs.sh out
+
+
+/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum *_R1R2 threads=4 memory=128 k=29 output ${1}
+```
+
+# Subtract union-sum from the intersect-sum of the other sex. For example, do this:
+## intersect-sum_females - union-sum_males
+
+This will give kmers that are present in all females and no males
+
 This should be done in each way (F-M and M-F)
 ```
 #!/bin/sh
@@ -107,7 +118,7 @@ This should be done in each way (F-M and M-F)
 #SBATCH --account=def-ben
 
 
-/home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl difference ${1} ${2} output in_${1}_not_${2}_differnece.db
+/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl difference ${1} ${2} output ${3}_differnece.db
 ```
 
 # print this output
