@@ -167,7 +167,7 @@ sed -i 's/2:N:0:/1:N:0:/g'  male_specific_concat_all_left.fastq
 
 # Add '/1' after each read
 ```
-awk '{ if (NR%4==1) { print $1"_"$2"/1" } else { print } }' 2024_pygm_femspecific_goodkmers.fq > 2024_pygm_femspecific_goodkmers_rename.fq 2024_pygm_femspecific_goodkmers.fq > 2024_pygm_femspecific_goodkmers_rename.fq
+awk '{ if (NR%4==1) { print $1"_"$2"/1" } else { print } }' 2024_pygm_femspecific_goodkmers.fq > 2024_pygm_femspecific_goodkmers_rename.fq 
 ```
 
 # Assemble sex-specific reads
