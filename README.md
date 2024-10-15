@@ -242,7 +242,7 @@ close OUTFILE1;
 # Plot Output with R
 
 ```R
-setwd("/Users/Shared/Previously\ Relocated\ Items/Security/projects/2023_clivii_largeni_pygmaeus/parsetab")
+setwd("/Users/Shared/Previously Relocated Items/Security/projects/2024_cliv_allo_WGS/allo_Parsetab")
 library(ggplot2)
 library(plyr)
 library(viridis)
@@ -257,17 +257,12 @@ options(scipen=999)
                                  # and that it can be homozygous or heterozygous
 
 
-# cliv WGS - this inputfile has only "Sex_specific_heterozygosity"
-dat <-read.table("allcliv_out_Sex_specific_heterozygosity.txt",header=F)
-dat <-read.table("alllarg_out_Sex_specific_heterozygosity.txt",header=F)
-dat <-read.table("allpygm_out_Sex_specific_heterozygosity.txt",header=F)
-
+# # I want to make an overlay histogram that shows "Sex_specific_heterozygosity" and "Sex_specific_SNP"
+dat <-read.table("Chr7L_ZW_parsetab.txt",header=T)
+# dat <-read.table("all_larg.txt",header=F)
 
 colnames(dat) <- c("CHR","POS","TYPE","CATEGORY","n_FEMs","n_MALS")
-
 head(dat)
-
-
 
 # Make a column that summarizes the number of fems and male
 dat$FandM <- paste(dat$n_FEMs,dat$n_MALS,sep="_")
@@ -285,68 +280,293 @@ summary <- count(dat, "FandM");summary
 dat <- dat[dat$FandM != "1_1", ]
 summary <- count(dat, "FandM");summary
 
-only_55_dat <- dat[dat$FandM == "5_5", ]
-
 # make separate dataframes for female-specific and male-specific heterozygosity
 fem_specific <- dat[dat$CATEGORY == 1, ]
 mal_specific <- dat[dat$CATEGORY == -1, ]
 summary <- count(fem_specific, "FandM");summary
 summary <- count(mal_specific, "FandM");summary
 
+#all_SL_ZW <- fem_specific[!is.na(fem_specific$CHR) &
+#                     ((fem_specific$TYPE == "Sex_specific_heterozygosity")|(fem_specific$TYPE == "Sex_specific_SNP")) &
+#                     (fem_specific$n_FEMs >= 8) &  
+#                     (fem_specific$n_MALS >= 8) &
+#                     (fem_specific$CATEGORY == "1")   ,]
+all_SL_ZW <- fem_specific[!is.na(fem_specific$CHR) &
+                              (fem_specific$CHR == "Chr7L") &
+                              ((fem_specific$TYPE == "Sex_specific_heterozygosity")|(fem_specific$TYPE == "Sex_specific_SNP")) &
+                              (fem_specific$n_FEMs >= 5) &  
+                              (fem_specific$n_MALS >= 5) &
+                              (fem_specific$CATEGORY == "1")   ,]
+
+all_SL_XY <- mal_specific[!is.na(mal_specific$CHR) &
+                              (mal_specific$CHR == "Chr7L") &
+                              ((mal_specific$TYPE == "Sex_specific_heterozygosity")|(mal_specific$TYPE == "Sex_specific_SNP")) &
+                              (mal_specific$n_FEMs >= 5) &  
+                              (mal_specific$n_MALS >= 5) &
+                              (mal_specific$CATEGORY == "-1")   ,]
+
+summary <- count(all_SL_ZW, "FandM");summary
+summary <- count(all_SL_XY, "FandM");summary
+
+# females
+png(filename = "allo_ZW_55.png",w=1200, h=500,units = "px", bg="transparent")
+p <- ggplot(all_SL_ZW, aes(x=POS/1000000, fill=TYPE)) +
+    scale_fill_manual(values=c("red","blue"))+
+    geom_histogram(binwidth = 0.3) + #, position = 'identity')+
+    xlab("Position(Mb)") + ylab("Count") +
+    xlim(0,230)+
+    ylim(0,35)+
+    facet_wrap(~CHR, ncol = 2, scales = "free_x") + 
+    theme_classic() +
+    theme(text = element_text(size = 20))
+p
+dev.off()
+
+# males
+png(filename = "allo_XY_55.png",w=1200, h=500,units = "px", bg="transparent")
+p <- ggplot(all_SL_XY, aes(x=POS/1000000, fill=TYPE)) +
+    scale_fill_manual(values=c("red","blue"))+
+    geom_histogram(binwidth = 0.3) + #, position = 'identity')+
+    xlab("Position(Mb)") + ylab("Count") +
+    xlim(0,230)+
+    ylim(0,35)+
+    facet_wrap(~CHR, ncol = 2, scales = "free_x") + 
+    theme_classic() +
+    theme(text = element_text(size = 20))
+p
+dev.off()
+
+
+
+# get the maximum bins on Chr7Lonly
+oneChronly <- all_SL_XY[(all_SL_XY$CHR == "Chr7L"),]
+Chr1onlyhist <- ggplot(oneChronly,aes(x=POS/1000000)) + geom_histogram( binwidth = 0.3)+
+    stat_bin(aes(y=after_stat(count), label=after_stat(count)), binwidth = 0.3,geom="text", vjust=-.5) 
+max_count <- max(ggplot_build(Chr1onlyhist)$data[[1]]$count);max_count
+second_best <- sort(ggplot_build(Chr1onlyhist)$data[[1]]$count, decreasing = T)[2];second_best
+third_best <- sort(ggplot_build(Chr1onlyhist)$data[[1]]$count, decreasing = T)[3];third_best
+fourth_best <- sort(ggplot_build(Chr1onlyhist)$data[[1]]$count, decreasing = T)[4];fourth_best
+
+over <- layer_data(Chr1onlyhist)
+head(over)
+# this is the best bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == max_count),]$x * 1000000
+# It ends here
+over[(over$count == max_count),]$x * 1000000 + (1000000*0.1)
+# allo
+# 17700000, 17800000  
+# mki67
+# upstream of foxi2
+
+# this is the second best bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == second_best),]$x * 1000000
+# It ends here
+over[(over$count == second_best),]$x * 1000000 + (1000000*0.1)
+# 42600000 42700000
+# LOC108699156 uncharacterized LOC108699156, 
+# eif3f.L eukaryotic translation initiation factor 3 subunit F, 
+# LOC108699158 eukaryotic translation initiation factor 3 subunit F
+# cfap126 cilia and flagella associated protein 126
+# sdhc succinate dehydrogenase complex subunit C
+
+# this is the third best bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == third_best),]$x * 1000000
+# It ends here
+over[(over$count == third_best),]$x * 1000000 + (1000000*0.1)
+# 130800000, 130900000
+# LOC108699447 erythroid membrane-associated protein
+# LOC121397250 butyrophilin subfamily 3 member A2-like 
+
+
+# this is the fourth best bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == fourth_best),]$x * 1000000
+# It ends here
+over[(over$count == fourth_best),]$x * 1000000 + (1000000*0.1)
+# 129900000, 130000000
+# LOC108699144 low affinity immunoglobulin gamma Fc region receptor II-like
+# LOC108699145 Fc receptor-like protein 5 
+# LOC121397354 low affinity immunoglobulin gamma Fc region receptor III-B-like
+# LOC121397355 high affinity immunoglobulin gamma Fc receptor I-like
+# LOC108699146 Fc receptor-like protein 4
+# LOC121397239 high affinity immunoglobulin gamma Fc receptor I-like
+
+
+
+View(oneChronly)
+
+
+
+
+
+
+
+
+
+# less stringent
+all_SL_ZW <- fem_specific[(fem_specific$TYPE == "Sex_specific_SNP") &
+                              (fem_specific$n_FEMs >= 8) &  
+                              (fem_specific$n_MALS >= 8) &
+                              (fem_specific$CATEGORY == "1")   ,]
+summary <- count(all_SL_ZW, "FandM");summary
+
+
+all_SL_XY <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                     (dat$n_FEMs >= 3) &  
+                     (dat$n_MALS >= 3) &
+                     (dat$CATEGORY == "-1")   ,]
+summary <- count(all_SL_XY, "FandM");summary
+
+
+
+
+all_SL_ZW_55 <- fem_specific[(fem_specific$TYPE == "Sex_specific_heterozygosity") &
+                              (fem_specific$n_FEMs == 5) &  
+                              (fem_specific$n_MALS == 5) &
+                              (fem_specific$CATEGORY == "1")   ,]
+summary <- count(all_SL_ZW_55, "FandM");summary
+all_SL_XY_55 <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                     (dat$n_FEMs == 5) &  
+                     (dat$n_MALS == 5) &
+                     (dat$CATEGORY == "-1")   ,]
+summary <- count(all_SL_XY_55, "FandM");summary
+
+
+# below not used
+
+only_55_dat <- dat[dat$FandM == "5_5", ]
+
 fem_specific_noscaf <- fem_specific[fem_specific$CHR != "Scaffolds", ]
 
-fplot<-ggplot(fem_specific, aes(x = POS/1000000, fill=FandM)) +
-    geom_density(linewidth=0.15)+
-    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
-    xlim(0,250)+
-    xlab("Position") + ylab("Density") +
-    scale_fill_viridis(discrete = TRUE) +
-    theme_bw()
-
-fplot_noscaf<-ggplot(fem_specific_noscaf, aes(x = POS/1000000, fill=FandM)) +
-    geom_density(linewidth=0.15)+
-    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
-    xlim(0,250)+
-    xlab("Position") + ylab("Density") +
-    scale_fill_viridis(discrete = TRUE) +
-    theme_bw()
-
-mplot<-ggplot(mal_specific, aes(x = POS/1000000, fill=FandM)) +
-    geom_density(linewidth=0.15)+
-    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
-    xlim(0,250)+
-    xlab("Position") + ylab("Density") +
-    scale_fill_viridis(discrete = TRUE) +
-    theme_bw()
 
 # make the combined plot more stringent
-fem_specific_noscaf <- fem_specific_noscaf[(fem_specific_noscaf$FandM != "1_2")&
-                                               (fem_specific_noscaf$FandM != "2_1")&
-                                               (fem_specific_noscaf$FandM != "1_3")&
-                                               (fem_specific_noscaf$FandM != "3_1")&
-                                               (fem_specific_noscaf$FandM != "2_2"), ]
+fem_specific_noscaf_specific <- fem_specific_noscaf[(fem_specific_noscaf$FandM == "5_5"), ]
+mal_specific_specific <- mal_specific[(mal_specific$FandM == "5_5"), ]
+dim(fem_specific_noscaf_specific)
+dim(mal_specific_specific)
+# females
+overlay_hist <- ggplot(fem_specific_noscaf,aes(x=POS/1000000, fill="FandM")) + 
+    geom_histogram( binwidth = 0.1, fill = "black") +
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'W_linked'),fill = "red", alpha = 0.5, binwidth = 20000) +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'WY_linked'),fill = "blue", alpha = 0.5, binwidth = 20000) +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'Z_linked'),fill = "black", alpha = 0.5, binwidth = 20000) +
+    #  scale_x_continuous(breaks = round(seq(9577608, 9593589, by = 50000))) +
+    #  theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+    #geom_rect(aes(xmin=139294668,xmax=139350317,ymin=-2,ymax=Inf),color="blue",alpha=0) + # dmrt1L
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr1L"), aes(xintercept = 139294668/1000000),color="blue",alpha=0.3) + # dmrt1L
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr1L"), aes(xintercept = 111921700/1000000),color="blue",alpha=0.3) + # amh.L 111921700..111936408
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr1S"), aes(xintercept = 118799066/1000000),color="blue",alpha=0.3) + # dmrt1S 118799066..118842776
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr1S"), aes(xintercept = 93431716/1000000),color="blue",alpha=0.3) + # amh.S 93431716..93458671 
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr4S"), aes(xintercept = 344155/1000000),color="blue",alpha=0.3) + # sf1.S 344155..361085
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr5L"), aes(xintercept = 137927930/1000000),color="blue",alpha=0.3) + # foxL2.L 137927930..137931728
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr5L"), aes(xintercept = 49625129/1000000),color="blue",alpha=0.3) + # estrogen receoptor 1L 49625129..49743175
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr5L"), aes(xintercept = 137927930/1000000),color="blue",alpha=0.3) + # foxL2.L 137927930..137931728
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr5S"), aes(xintercept = 40136271/1000000),color="blue",alpha=0.3) + # estrogen receoptor 1S 40136271..40247358
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr5S"), aes(xintercept = 115779807/1000000),color="blue",alpha=0.3) + # foxl2.S 115779807..115781431
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr7L"), aes(xintercept = 98176992/1000000),color="blue",alpha=0.3) + # wnt4.l 98176992..98220522
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr7S"), aes(xintercept = 82417208/1000000),color="blue",alpha=0.3) + # wnt4.S 82417208..82467306
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr8L"), aes(xintercept = 30541025/1000000),color="blue",alpha=0.3) + #androgen receptor 30541025..30689464
+    #geom_vline(data = subset(fem_specific_noscaf_specific, CHR == "Chr8L"), aes(xintercept = 92341707/1000000),color="blue",alpha=0.3) + #estrogen receptor 2L 92341707..92374149
+    xlim(0,240)+
+    xlab("Position(MB)") + ylab("Count") +
+    #geom_text(stat= "count", aes(label=after_stat(count)), vjust=-1, size=3) +
+    #stat_bin(aes(y=after_stat(count), label=after_stat(count)), binwidth = 0.05,geom="text", vjust=-.5) +
+    theme_classic();overlay_hist
 
-fplot_allcombined<-ggplot(fem_specific_noscaf, aes(x = POS/1000000)) +
-    geom_density(linewidth=0.15)+
+# males
+moverlay_hist <- ggplot(mal_specific_specific,aes(x=POS/1000000, fill="FandM")) + 
+    geom_histogram( binwidth = 0.1, fill = "black") +
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'W_linked'),fill = "red", alpha = 0.5, binwidth = 20000) +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'WY_linked'),fill = "blue", alpha = 0.5, binwidth = 20000) +
+    #geom_histogram(data=subset(subset_locations,TYPE == 'Z_linked'),fill = "black", alpha = 0.5, binwidth = 20000) +
+    #  scale_x_continuous(breaks = round(seq(9577608, 9593589, by = 50000))) +
+    #  theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1)) +
+    geom_rect(aes(xmin=139294668,xmax=139350317,ymin=-2,ymax=Inf),color="blue",alpha=0) + # dmrt1L
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr1L"), aes(xintercept = 139294668/1000000),color="blue",alpha=0.3) + # dmrt1L
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr1L"), aes(xintercept = 111921700/1000000),color="blue",alpha=0.3) + # amh.L 111921700..111936408
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr1S"), aes(xintercept = 118799066/1000000),color="blue",alpha=0.3) + # dmrt1S 118799066..118842776
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr1S"), aes(xintercept = 93431716/1000000),color="blue",alpha=0.3) + # amh.S 93431716..93458671 
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr4S"), aes(xintercept = 344155/1000000),color="blue",alpha=0.3) + # sf1.S 344155..361085
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr5L"), aes(xintercept = 137927930/1000000),color="blue",alpha=0.3) + # foxL2.L 137927930..137931728
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr5L"), aes(xintercept = 49625129/1000000),color="blue",alpha=0.3) + # estrogen receoptor 1L 49625129..49743175
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr5L"), aes(xintercept = 137927930/1000000),color="blue",alpha=0.3) + # foxL2.L 137927930..137931728
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr5S"), aes(xintercept = 40136271/1000000),color="blue",alpha=0.3) + # estrogen receoptor 1S 40136271..40247358
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr5S"), aes(xintercept = 115779807/1000000),color="blue",alpha=0.3) + # foxl2.S 115779807..115781431
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr7L"), aes(xintercept = 98176992/1000000),color="blue",alpha=0.3) + # wnt4.l 98176992..98220522
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr7S"), aes(xintercept = 82417208/1000000),color="blue",alpha=0.3) + # wnt4.S 82417208..82467306
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr8L"), aes(xintercept = 30541025/1000000),color="blue",alpha=0.3) + #androgen receptor 30541025..30689464
+    geom_vline(data = subset(mal_specific_specific, CHR == "Chr8L"), aes(xintercept = 92341707/1000000),color="blue",alpha=0.3) + #estrogen receptor 2L 92341707..92374149
+    xlim(0,240)+
+    xlab("Position(MB)") + ylab("Count") +
+    #geom_text(stat= "count", aes(label=after_stat(count)), vjust=-1, size=3) +
+    #stat_bin(aes(y=after_stat(count), label=after_stat(count)), binwidth = 0.05,geom="text", vjust=-.5) +
+    theme_classic();overlay_hist
+
+pdf("./larg_fem_noscaf_fixed_divergence_hist_5_5.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    overlay_hist
+dev.off()
+
+pdf("./larg_male_noscaf_fixed_divergence_hist_5_5.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    moverlay_hist
+dev.off()
+
+# cliv peaks: Chr3L
+# larg peaks: Chr3S, Chr6L
+# get the maximum bins on Chr1Lonly
+oneChronly <- fem_specific_noscaf_specific[(fem_specific_noscaf_specific$CHR == "Chr8L"),]
+Chr1onlyhist <- ggplot(oneChronly,aes(x=POS/1000000)) + geom_histogram( binwidth = 0.05)+
+    stat_bin(aes(y=after_stat(count), label=after_stat(count)), binwidth = 0.05,geom="text", vjust=-.5) 
+max_count <- max(ggplot_build(Chr1onlyhist)$data[[1]]$count);max_count
+second_best <- sort(ggplot_build(Chr1onlyhist)$data[[1]]$count, decreasing = T)[2];second_best
+over <- layer_data(Chr1onlyhist)
+head(over)
+# this is the bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == max_count),]$x * 1000000
+# It ends here
+over[(over$count == max_count),]$x * 1000000 + (1000000*0.05)
+# this is the second best bin; we need to multiply it by 1,000,000 to get the coordinates
+over[(over$count == second_best),]$x * 1000000
+# It ends here
+over[(over$count == second_best),]$x * 1000000 + (1000000*0.05)
+View(oneChronly)
+write.table(oneChronly, file = "pygm_Chr8L_SL_4_4.csv", sep = ",")
+
+
+fplot_noscaf<-ggplot(fem_specific_noscaf_specific, aes(x = POS/1000000)) +
+    geom_density(linewidth=0.15,adjust = 0.01)+
     facet_wrap(~CHR, ncol = 1, scales = "free_x") +
     xlim(0,250)+
     xlab("Position") + ylab("Density") +
     scale_fill_viridis(discrete = TRUE) +
     theme_bw()
 
-pdf("./pygm_female_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+mplot_noscaf<-ggplot(mal_specific, aes(x = POS/1000000)) +
+    geom_density(linewidth=0.15,adjust = 0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_female_noscaf_specific_heterozygosity_5.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    fplot_noscaf
+dev.off()
+pdf("./larg_male_noscaf_specific_heterozygosity_5.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+    mplot_noscaf
+dev.off()
+
+
+pdf("./cliv_female_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
     fplot
 dev.off()
 
-pdf("./pygm_male_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+pdf("./cliv_male_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
     mplot
 dev.off()
 
-pdf("./pygm_female_noscaf_specific_heterozygosity.pdf",w=8, h=30.0, version="1.4", bg="transparent")
-    fplot_noscaf
-dev.off()
 
-pdf("./larg_female_specific_allcombined.pdf",w=8, h=30.0, version="1.4", bg="transparent")
+pdf("./cliv_female_specific_allcombined.pdf",w=8, h=30.0, version="1.4", bg="transparent")
     fplot_allcombined
 dev.off()
 
@@ -360,7 +580,7 @@ summary <- count(mal_55_specific, "FandM");summary
 
 
 f55plot<-ggplot(fem_55_specific, aes(x = POS/1000000, fill=FandM)) +
-    geom_density(linewidth=0.15)+
+    geom_density(linewidth=0.15,adjust = 0.05)+
     facet_wrap(~CHR, ncol = 1, scales = "free_x") +
     xlim(0,250)+
     xlab("Position") + ylab("Density") +
@@ -372,25 +592,25 @@ pdf("./larg_55_female_specific.pdf",w=8, h=30.0, version="1.4", bg="transparent"
 dev.off()
 
 # need to add endpoints to prevent densities from tanking
-dat[nrow(dat) + 1,] <- c("Chr1L","232529967","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr1S","196169796","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr2L","184566229","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr2S","167897111","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr3L","145564449","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr3S","127416162","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr4L","156120765","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr4S","131359388","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr5L","174499024","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr5S","139053354","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr6L","157843502","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr6S","137668413","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr7L","136892544","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr7S","105895006","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr8L","123836259","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr8S","105436522","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr9_10L","135078614","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Chr9_10S","110702964","Sex_specific_heterozygosity","1","5","5")
-dat[nrow(dat) + 1,] <- c("Scaffolds","42147407","Sex_specific_heterozygosity","1","5","5")
+dat[nrow(dat) + 1,] <- c("Chr1L","232529967","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr1S","196169796","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr2L","184566229","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr2S","167897111","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr3L","145564449","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr3S","127416162","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr4L","156120765","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr4S","131359388","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr5L","174499024","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr5S","139053354","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr6L","157843502","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr6S","137668413","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr7L","136892544","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr7S","105895006","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr8L","123836259","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr8S","105436522","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr9_10L","135078614","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Chr9_10S","110702964","Sex_specific_heterozygosity","1","5","5","5_5")
+dat[nrow(dat) + 1,] <- c("Scaffolds","42147407","Sex_specific_heterozygosity","1","5","5","5_5")
 #View(all_SL)
 
 
@@ -427,21 +647,28 @@ all_SL_ZW <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
               (dat$CATEGORY == "1")   ,]
 
 all_SL_XY <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
-                     (dat$n_FEMs == "9") &  
-                     (dat$n_MALS == "11") &
+                     (dat$n_FEMs == "5") &  
+                     (dat$n_MALS == "5") &
                      (dat$CATEGORY == "-1")   ,]
 
 dim(all_SL_ZW)
 dim(all_SL_XY)
-View(all_SL)
+View(all_SL_ZW)
 View(all_SL_XY)
 
 
+all_SL_ZW_Chr1L <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                     (dat$n_FEMs == "5") &  
+                     (dat$n_MALS == "5") &
+                     (dat$CATEGORY == "1") &
+                     (dat$CHR == "Chr1L"),]
 
-
+ggplot(all_SL_ZW_Chr1L, aes(x = POS)) +
+        geom_density(adjust = 0.05)
 
 library(plyr)
-summary <- count(all_SL_ordered, "CHR")
+all_SL_ordered_ZW <- all_SL_ZW[order(all_SL_ZW$CHR, all_SL_ZW$POS),]
+summary <- count(all_SL_ordered_ZW, "CHR")
 chr_sizes <- c(232529967,196169796,184566229,167897111,145564449,127416162,156120765,
                131359388,174499024,139053354,157843502,137668413,136892544,105895006,123836259,
                105436522,135078614,110702964,42147407)
@@ -450,13 +677,13 @@ summary$proportions <- summary$freq/summary$chr_sizes
 summary[summary$proportions == max(summary$proportions),]
 
 
-all_SL_ordered <- all_SL[order(all_SL$CHR, all_SL$POS),]
+
 
 #View(temp)
 temp <-c("red","blue")
 
-p<-ggplot(all_SL_ordered, aes(x = POS/1000000)) +
-    geom_density()+
+p<-ggplot(all_SL_ordered_ZW, aes(x = as.numeric(POS)/1000000)) +
+    geom_density(adjust = 0.05)+
     #geom_vline(xintercept=49000000)+ 
     facet_wrap(~CHR, ncol = 1, scales = "free_x") +
     xlab("Position") + ylab("Density") +
@@ -464,7 +691,7 @@ p<-ggplot(all_SL_ordered, aes(x = POS/1000000)) +
     theme_bw()
 
 
-pdf("./Clivi_female_specific_heterozygosity.pdf",w=10, h=30.0, version="1.4", bg="transparent")
+pdf("./larg_female_specific_heterozygosity.pdf",w=10, h=30.0, version="1.4", bg="transparent")
 p
 dev.off()
 
@@ -472,9 +699,20 @@ dev.off()
 # filter data to retain only sites with a reasonable amount of
 # genotypes in both sexes
 
-subset_data <- dat[(dat$n_FEMs + dat$n_MALS) >= 10,]
+subset_data <- dat[((as.numeric(dat$n_FEMs) + as.numeric(dat$n_MALS)) > 6)&(dat$CATEGORY==1),]
 dim(subset_data)
 
+fplot<-ggplot(dat, aes(x = as.numeric(POS)/1000000, fill=FandM)) +
+    geom_density(linewidth=0.15, adjust = 0.001)+
+    facet_wrap(~CHR, ncol = 2, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_gt8_femspecific.pdf",w=18, h=18.0, version="1.4", bg="transparent")
+    fplot
+dev.off()
 
 p<-ggplot(dat, aes(x=POS, y=CATEGORY*(n_FEMs+n_MALS))) + 
     # add points
@@ -487,6 +725,126 @@ p<-ggplot(dat, aes(x=POS, y=CATEGORY*(n_FEMs+n_MALS))) +
     theme_bw()
 pdf("./out_0.5.pdf",w=18, h=18.0, version="1.4", bg="transparent")
     p
+dev.off()
+
+
+
+
+
+fplot<-ggplot(all_SL_ZW, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+pdf("./larg_femspecific.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+fplot
+dev.off()
+
+mplot<-ggplot(all_SL_XY, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_malspecific.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+mplot
+dev.off()
+
+
+fplot<-ggplot(all_SL_ZW_55, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+pdf("./larg_femspecific_55.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+fplot
+dev.off()
+
+mplot<-ggplot(all_SL_XY_55, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_malspecific_55.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+mplot
+dev.off()
+
+all_SL_ZW_54 <- fem_specific[(fem_specific$TYPE == "Sex_specific_heterozygosity") &
+                                 (fem_specific$n_FEMs == 5) &  
+                                 (fem_specific$n_MALS == 4) &
+                                 (fem_specific$CATEGORY == "1")   ,]
+summary <- count(all_SL_ZW_54, "FandM");summary
+all_SL_XY_54 <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                        (dat$n_FEMs == 5) &  
+                        (dat$n_MALS == 4) &
+                        (dat$CATEGORY == "-1")   ,]
+summary <- count(all_SL_XY_54, "FandM");summary
+
+fplot<-ggplot(all_SL_ZW_54, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+pdf("./larg_femspecific_54.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+fplot
+dev.off()
+
+mplot<-ggplot(all_SL_XY_54, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_malspecific_54.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+mplot
+dev.off()
+
+
+all_SL_ZW_45 <- fem_specific[(fem_specific$TYPE == "Sex_specific_heterozygosity") &
+                                 (fem_specific$n_FEMs == 4) &  
+                                 (fem_specific$n_MALS == 5) &
+                                 (fem_specific$CATEGORY == "1")   ,]
+summary <- count(all_SL_ZW_45, "FandM");summary
+all_SL_XY_45 <- dat[(dat$TYPE == "Sex_specific_heterozygosity") &
+                        (dat$n_FEMs == 4) &  
+                        (dat$n_MALS == 5) &
+                        (dat$CATEGORY == "-1")   ,]
+summary <- count(all_SL_XY_45, "FandM");summary
+
+fplot<-ggplot(all_SL_ZW_45, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+pdf("./larg_femspecific_45.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+fplot
+dev.off()
+
+mplot<-ggplot(all_SL_XY_45, aes(x = POS/1000000, fill=FandM)) +
+    geom_density(adjust=0.01)+
+    facet_wrap(~CHR, ncol = 1, scales = "free_x") +
+    xlim(0,250)+
+    xlab("Position") + ylab("Density") +
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw()
+
+pdf("./larg_malspecific_45.pdf",w=6, h=28.0, version="1.4", bg="transparent")
+mplot
 dev.off()
 
 
