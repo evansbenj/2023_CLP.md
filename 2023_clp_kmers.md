@@ -81,7 +81,7 @@ This requires a kmer to be present in all samples from a given sex. This should 
 
 # Make a union-sum of all samples within each sex (this will be substracted from the intersect-sum for each sex)
 
-I am not positive that this step is required.
+THis is required for each sex because we want to remove kmers that are present in all females but only some males, and vice versa. If we only subtract female-fixed kmers from male-fixed kmers, then some of the resulting kmers will be present in one sex and some individuals of the other sex, and vice versa.
 
 ```
 #!/bin/sh
