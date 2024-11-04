@@ -60,7 +60,7 @@ This makes a new kmer db of kmers that are in the for or rev read, or in both. T
 ```
 
 # Make intersection sum for all samples within each sex
-This requires a kmer to be present in all samples from a given sex. This should cut down on background stemming from sample-specific SNPs
+This requires a kmer to be present in all samples from a given sex. This should cut down on background stemming from sample-specific SNPs. This needs to be done using pairs of samples, then pairs of paired sample databases, etc until there are two kmer dbs that each have kmers that are present in all individuals from each sex
 
 ```
 #!/bin/sh
@@ -80,6 +80,8 @@ This requires a kmer to be present in all samples from a given sex. This should 
 ```
 
 # Make a union-sum of all samples within each sex (this will be substracted from the intersect-sum for each sex)
+
+I am not positive that this step is required.
 
 ```
 #!/bin/sh
