@@ -9,7 +9,7 @@ I'm adapting a pipeline I developed earlier for XT_WZY:
 ```
 https://github.com/evansbenj/XT_WW_WZ_WY/blob/main/kmers_unique_to_Y_and_W.md
 ```
-# Kmer size 29 for new pygmaeus, 21 for original clivii (29 for new clivii)
+# Kmer size 29 for new pygmaeus, 21 for original clivii 
 
 # Using trimmed fq files!
 
