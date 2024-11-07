@@ -139,6 +139,8 @@ This directory has meryl dbs of female-specific and male-specific 21mer database
 # Extract paired reads that have sex-specific kmers
 I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
 
+I think the best way to do this is to do this for each sample (for each sex) and then combine the female-specific reads from all females, and the same for all males.
+
 According to this example, the format of the kmer file is almost the same as the output of meryl, except there are spaces instead of tabs between the kmer and the counts:
 ```
 https://github.com/NikoLichi/Cookiecutter/blob/master/data/alpha.dat
