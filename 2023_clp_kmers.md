@@ -408,7 +408,15 @@ makeblastdb -dbtype nucl -in allo_only5mals_trinity_out_dir.Trinity.fasta -out a
 ```
 blastn -query ../../../2021_XL_v10_refgenome/XENLA_10.1_Xenbase.transcripts.fa -db allo_only5mals_trinity_out_dir.Trinity.fasta_blastable -outfmt 6 -out XLtranscrips_to_allo_only5mals_trinity -evalue 1e-20 -task megablast
 ```
-# focus on only the matches that are > 200 bp
+# focus on only the matches that are > 500 bp
 ```
-cat XLtranscrips_to_allo_only5mals_trinity | awk '$4 < 200 { next } { print }'> XLtranscrips_to_allo_only5mals_trinity_match_atleast_200bp.txt
+cat XLtranscrips_to_allo_only5mals_trinity | awk '$4 < 500 { next } { print }'> XLtranscrips_to_allo_only5mals_trinity_match_atleast_500bp.txt
+```
+# Get a list of transcripts with a match
+```
+cat XLtranscrips_to_allo_only5mals_trinity_match_atleast_500bp.txt | cut -f1 | uniq > unique_XL_500bp_matches_to_allo5males.txt
+```
+# Now search for the full entry for these transcripts; or for a particular transcript
+```
+grep -f unique_XL_500bp_matches_to_allo5males.txt ../../../2021_XL_v10_refgenome/XENLA_10.1_Xenbase.transcripts.fa | grep 'notch'
 ```
