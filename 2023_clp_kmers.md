@@ -391,3 +391,24 @@ png(filename = "larg_kmer_mapping_histo_difference.png",w=1200, h=1800,units = "
     difference_plot
 dev.off()
 ```
+
+# Blast XL transcripts to trinity assembly
+in this directory:
+```
+/home/ben/projects/rrg-ben/ben/2024_cliv_allo_WGS/fq/2024_allo
+```
+
+```
+module load StdEnv/2023 blast/2.2.26
+module load blast+/2.14.1  StdEnv/2023 gcc/12.3
+```
+```
+makeblastdb -dbtype nucl -in allo_only5mals_trinity_out_dir.Trinity.fasta -out allo_only5mals_trinity_out_dir.Trinity.fasta_blastable
+```
+```
+blastn -query ../../../2021_XL_v10_refgenome/XENLA_10.1_Xenbase.transcripts.fa -db allo_only5mals_trinity_out_dir.Trinity.fasta_blastable -outfmt 6 -out XLtranscrips_to_allo_only5mals_trinity -evalue 1e-20 -task megablast
+```
+# focus on only the matches that are > 200 bp
+```
+cat XLtranscrips_to_allo_only5mals_trinity | awk '$4 < 200 { next } { print }'> XLtranscrips_to_allo_only5mals_trinity_match_atleast_200bp.txt
+```
