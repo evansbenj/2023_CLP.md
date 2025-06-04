@@ -47,7 +47,7 @@ unless (open(OUTFILE1, ">$outputfile1"))  {
 }
 print "Creating output file: $outputfile1\n";
 
-print OUTFILE1 "Matpat_het_sites\tSonDau_het_sites\tOverlap\n";
+print OUTFILE1 "Pos\tMatpat_het_sites\tSonDau_het_sites\tOverlap\n";
 
 my @temp;
 my @overlap;
