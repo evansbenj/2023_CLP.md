@@ -91,6 +91,11 @@ foreach my $key (sort { $a <=> $b } keys %file1){
 		}
 	}
 }
+# record last one
+$overlap_hash{$bin}[0]=$countr; # this is the number of sites in first file
+$overlap_hash{$bin}[1]=0; # just initialize the other counts
+$overlap_hash{$bin}[2]=0;
+
 
 $countr = 0;
 $bin=1000000;
@@ -101,7 +106,14 @@ foreach my $key (sort { $a <=> $b } keys %file2){
 			$countr+=1;
 		}
 		else{
-			$overlap_hash{$bin}[1]=$countr; # this is the number of sites in second file
+			if(exists($overlap_hash{$bin}[0])){ # check if this has been initialized by the counts in file1
+				$overlap_hash{$bin}[1]=$countr; # this is the number of sites in second file
+			}
+			else{
+				$overlap_hash{$bin}[1]=$countr; # this is the number of sites in second file
+				$overlap_hash{$bin}[0]=0; # just initialize the other counts
+				$overlap_hash{$bin}[2]=0; # just initialize the other counts
+			}	
 			$bin+=1000000;
 			$countr=1;
 		}
@@ -131,7 +143,9 @@ foreach my $key (sort { $a <=> $b } keys %overlap_hash){
 	if($key ne ""){
 		print OUTFILE1 $key,"\t",$overlap_hash{$key}[0],"\t",$overlap_hash{$key}[1],"\t",$overlap_hash{$key}[2],"\n";
 	}
-}		
+}
 
 close OUTFILE1;
+
+
 ```
