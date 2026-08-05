@@ -18,5 +18,11 @@ bedtools genomecov -ibam ${1} -bga | awk '$4==0 && ($3-$2)>50' > ${1}_zero_regio
 ```
 Now find overlapping regions in multiple bam files- do this separately for males and females (need to check this):
 ```
+bedtools multiinter -i *_zero_regionz.txt -g ../2026_pygm_iridian_genome_decontam.bed -empty |
+```
+
+*** Need to check what happens when regions overlap but have different margins
+
+```
 bedtools multiinter -i *_zero_regionz.txt | awk -v N=$(ls *.zero.bed | wc -l) '$4==N'
 ```
