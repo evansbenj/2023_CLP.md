@@ -20,6 +20,9 @@ Now find overlapping regions in multiple bam files- do this separately for males
 ```
 bedtools multiinter -i *_zero_regionz_all.txt -g ../../../../../cliv_ref/cliv_male_GCA_046118455.1_ASM4611845v1_genomic.fa.bed -empty | grep '1,2,3,4,5,6,7,8,9' > 9femalez_regions_with_no_coverage.txt
 ```
+```
+bedtools multiinter -i *_zero_regionz_all.txt -g ../../../Z23349_male_spades_assembly/Z23349_male_spades_assembly/scaffolds.bed -empty | grep '1,2,3,4,5,6,7,8,9' > 9femalez_regions_with_no_coverage.txt
+```
 
 Extract regions that are bigger than 1000bp
 ```
