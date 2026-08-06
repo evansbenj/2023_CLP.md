@@ -18,7 +18,7 @@ bedtools genomecov -ibam ${1} -bga | awk '$4==0 && ($3-$2)>50' > ${1}_zero_regio
 ```
 Now find overlapping regions in multiple bam files- do this separately for males and females (need to check this):
 ```
-bedtools multiinter -i *_zero_regionz.txt -g ../2026_pygm_iridian_genome_decontam.bed -empty |
+bedtools multiinter -i *_zero_regionz_all.txt -g ../../../../../cliv_ref/cliv_male_GCA_046118455.1_ASM4611845v1_genomic.fa.bed -empty | grep '1,2,3,4,5,6,7,8,9' > 9femalez_regions_with_no_coverage.txt
 ```
 
 Extract regions that are bigger than 1000bp
