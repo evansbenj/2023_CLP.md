@@ -21,8 +21,11 @@ Now find overlapping regions in multiple bam files- do this separately for males
 bedtools multiinter -i *_zero_regionz.txt -g ../2026_pygm_iridian_genome_decontam.bed -empty |
 ```
 
-*** Need to check what happens when regions overlap but have different margins
-
+Extract regions that are bigger than 1000bp
 ```
-bedtools multiinter -i *_zero_regionz.txt | awk -v N=$(ls *.zero.bed | wc -l) '$4==N'
+awk '{
+diff = $1 - $2
+if (diff < 0) diff = -diff
+if (diff > 1000) print}' 8malez_regions_with_no_coverage.txt > 8malez_regions_with_no_coverage_gt_1000.txt
+
 ```
