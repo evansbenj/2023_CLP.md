@@ -28,6 +28,9 @@ bedtools multiinter -i *_zero_regionz_all.txt -g ../../../../../cliv_ref/cliv_ma
 ```
 bedtools multiinter -i *_zero_regionz_all.txt -g ../../../Z23349_male_spades_assembly/Z23349_male_spades_assembly/scaffolds.bed -empty | grep '1,2,3,4,5,6,7,8,9' > 9femalez_regions_with_no_coverage.txt
 ```
+```
+bedtools multiinter -i *_zero_regionz_all_sorted.txt -g ../../2026_pygm_iridian_genome_decontam.bed -empty | grep '1,2,3,4,5,6,7,8,9' > 9femalez_regions_with_no_coverage.txt
+```
 
 Extract regions that are bigger than 1000bp
 ```
