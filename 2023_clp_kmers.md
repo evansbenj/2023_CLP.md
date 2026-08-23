@@ -5,11 +5,9 @@ path for 2024_clp:
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm
 ```
 
-I'm adapting a pipeline I developed earlier for XT_WZY:
-```
-https://github.com/evansbenj/XT_WW_WZ_WY/blob/main/kmers_unique_to_Y_and_W.md
-```
-# Kmer size 29 for new pygmaeus, 21 for original clivii 
+I'm redoing this with new meryl and no cookiecutter:
+
+# Kmer size 29 for pygmaeus, 21 for original clivii 
 
 # Using trimmed fq files!
 
@@ -24,198 +22,158 @@ in case the command doesn't work:
 export PATH=/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin:$PATH
 ```
 
-Make meryl db for forward and reverse reads (separately) like this:
+Make meryl db for forward and reverse reads (together) like this:
 ```
 #!/bin/sh
-#SBATCH --job-name=meryl
+#SBATCH --job-name=makemeryldb
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=48:00:00
+#SBATCH --cpus-per-task=16
+#SBATCH --time=166:00:00
 #SBATCH --mem=128gb
-#SBATCH --output=meryl.%J.out
-#SBATCH --error=meryl.%J.err
-#SBATCH --account=def-ben
+#SBATCH --output=makemeryldb.%J.out
+#SBATCH --error=makemeryldb.%J.err
+#SBATCH --account=rrg-ben
 
-
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/bin/meryl/build/bin/meryl count ${1} threads=4 memory=128 k=29 output ${1}_meryldb.out
+/home/ben/projects/rrg-ben/ben/2025_bin/meryl/build/bin/meryl count ${1}*R[1,2].fq.gz threads=4 memory=128 k=29 output ${1}_meryldb.out threads=16
 ```
 
-# Make a union-sum for each  sample
-This makes a new kmer db of kmers that are in the for or rev read, or in both. The count is the sum over the for and rev db.
 
-```
-#!/bin/sh
-#SBATCH --job-name=meryl
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=48:00:00
-#SBATCH --mem=132gb
-#SBATCH --output=meryl.%J.out
-#SBATCH --error=meryl.%J.err
-#SBATCH --account=def-ben
-
-# sbatch 2020_meryl_union_kmer_dbs.sh db1 db2 out
-
-/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum ${1} ${2} threads=4 memory=128 k=29 output ${3}
-```
-
-# Make intersection sum for all samples within each sex
-This requires a kmer to be present in all samples from a given sex. This should cut down on background stemming from sample-specific SNPs. This needs to be done using pairs of samples, then pairs of paired sample databases, etc until there are two kmer dbs that each have kmers that are present in all individuals from each sex
+# Make intersection sum for female samples 
+This requires a kmer to be present in all samples from a given sex.
 
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl_intersect
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
 #SBATCH --time=2:00:00
 #SBATCH --mem=128gb
 #SBATCH --output=meryl_intersect.%J.out
 #SBATCH --error=meryl_intersect.%J.err
-#SBATCH --account=def-ben
+#SBATCH --account=rrg-ben
 
-# intersect-sum is makes the sum of counts that are in both
-# this is not the union
+# sbatch 2026_meryl_intersect.sh fq_meryl kmermeryl
+/home/ben/projects/rrg-ben/ben/2025_bin/meryl/build/bin/meryl intersect-sum \
+output allfemz_intersect_sum.meryl \
+fem_pyg_15_meryldb.out \
+fem_pygm_ELI1682_meryldb.out \
+fem_pygm_ELI2081_meryldb.out \
+fem_pygm_ELI2372_meryldb.out \
+fem_pygm_ELI3012_meryldb.out \
+Z23338_female_meryldb.out \
+Z23340_female_meryldb.out \
+Z23341_female_meryldb.out \
+Z23342_female_meryldb.out 
 
-/home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl intersect-sum ${1} ${2} output ${1}_${2}_intersect_sum.db
 ```
 
-# Make a union-sum of all samples within each sex (this will be substracted from the intersect-sum for each sex)
+# Make a union-sum of all male samples  (this will be substracted from the intersect-sum for females)
 
-THis is required for each sex because we want to remove kmers that are present in all females but only some males, and vice versa. If we only subtract female-fixed kmers from male-fixed kmers, then some of the resulting kmers will be present in one sex and some individuals of the other sex, and vice versa.
+This is required for males because we want to remove kmers that are present in all females but only some males. If we only subtract female-fixed kmers from male-fixed kmers, then some of the resulting kmers will be present in one sex and some individuals of the other sex.
 
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl_unionsum
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
 #SBATCH --time=2:00:00
 #SBATCH --mem=128gb
-#SBATCH --output=meryl_unionsum.%J.out
-#SBATCH --error=meryl_unionsum.%J.err
+#SBATCH --output=meryl_intersect.%J.out
+#SBATCH --error=meryl_intersect.%J.err
 #SBATCH --account=rrg-ben
 
-# make symbolic links so that all dbs are in one directory
-# and launch this in that directory
-# sbatch 2020_meryl_union_kmer_dbs.sh out
+# sbatch 2026_meryl_intersect.sh fq_meryl kmermeryl
+/home/ben/projects/rrg-ben/ben/2025_bin/meryl/build/bin/meryl union-sum \
+output allmalez_unionsum.meryl \
+mal_pygm_ELI1681_meryldb.out \
+mal_pygm_ELI2347_meryldb.out \
+mal_pygm_ELI2370_meryldb.out \
+mal_pygm_ELI2545_meryldb.out \
+Z23337_male_meryldb.out \
+Z23339_male_meryldb.out \
+Z23349_male_meryldb.out \
+Z23350_male_meryldb.out
 
-
-/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl union-sum *_R1R2 threads=4 memory=128 k=29 output ${1}
 ```
 
-# Subtract union-sum from the intersect-sum of the other sex. For example, do this:
-## intersect-sum_females - union-sum_males
+# Subtract union-sum from males the intersect-sum of females
 
 This will give kmers that are present in all females and no males
 
-This should be done in each way (F-M and M-F)
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl_difference
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=16
 #SBATCH --time=2:00:00
 #SBATCH --mem=128gb
-#SBATCH --output=meryl_difference.%J.out
-#SBATCH --error=meryl_difference.%J.err
-#SBATCH --account=def-ben
+#SBATCH --output=meryl_intersect.%J.out
+#SBATCH --error=meryl_intersect.%J.err
+#SBATCH --account=rrg-ben
 
+# sbatch 2026_meryl_intersect.sh fq_meryl kmermeryl
+/home/ben/projects/rrg-ben/ben/2025_bin/meryl/build/bin/meryl difference ${1} ${2} output in_${1}_but_not_${2}.meryl threads=16
 
-/home/ben/projects/rrg-ben/ben/2020_XT_WW_WZ_WY/bin/meryl/build/bin/meryl difference ${1} ${2} output ${3}_differnece.db
 ```
 This is the meryl db of the female-specifc kmers for pygm:
 ```
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/fem_pygm/in_all_fem_notinanyof_8malez_differnece.db
-```
-This directory has meryl dbs of female-specific and male-specific 21mer databases for clivii:
-```
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/raw_data/cliv_pe_trim
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/in_allfemz_intersect_sum.meryl_but_not_allmalez_unionsum.meryl.meryl
 ```
 
-# print this output
+Can do the same for males, but RADseq data indicates that females are the heterogametic sex...
+
+
+# print this output (not needed)
 ```
 /home/ben/scratch/2023_clp_for_real/bin/meryl/build/bin/meryl print in_all_fems_Z23338_Z23340_Z23341_Z23342intersectsum.db_not_all_males_Z23337_Z23349_Z23339_Z23350_intersect_sum.db_differnece.db > fems_only_kmers.txt
 ```
 
 # Extract paired reads that have sex-specific kmers
-I'm going to use cookie cutter to extract reads with these kmers (https://github.com/NikoLichi/Cookiecutter)
 
-I think the best way to do this is to do this for each sample (for each sex) and then combine the female-specific reads from all females, and the same for all males.
-
-According to this example, the format of the kmer file is almost the same as the output of meryl, except there are spaces instead of tabs between the kmer and the counts:
-```
-https://github.com/NikoLichi/Cookiecutter/blob/master/data/alpha.dat
-```
 
 ```
 #!/bin/sh
-#SBATCH --job-name=cookie_extract
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=2:00:00
-#SBATCH --mem=24gb
-#SBATCH --output=cookie_extract.%J.out
-#SBATCH --error=cookie_extract.%J.err
-#SBATCH --account=def-ben
-
-/home/ben/scratch/2023_clp_for_real/bin/Cookiecutter/bin/extract -1 ${1} -2 ${2} -o ${4} --fragments ${3}
-```
-
-# Combine se reads with R1 reads
-
-
-
-Need to change the header of the SE reverse reads after concatenating:
-```
-sed -i 's/2:N:0:/1:N:0:/g'  male_specific_concat_all_left.fastq
-```
-
-# Add '/1' after each read
-```
-awk '{ if (NR%4==1) { print $1"_"$2"/1" } else { print } }' 2024_pygm_femspecific_goodkmers.fq > 2024_pygm_femspecific_goodkmers_rename.fq 
-```
-
-# Assemble sex-specific reads
-
-```
-#!/bin/sh
-#SBATCH --job-name=trinity
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
-#SBATCH --time=166:00:00
+#SBATCH --job-name=extractreadz
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=4
+#SBATCH --time=24:00:00
 #SBATCH --mem=128gb
-#SBATCH --output=trinity.%J.out
-#SBATCH --error=trinity.%J.err
-#SBATCH --account=def-ben
+#SBATCH --output=extractreadz.%J.out
+#SBATCH --error=extractreadz.%J.err
+#SBATCH --account=rrg-ben
 
-module purge
-module load StdEnv/2020 gcc/9.3.0 salmon/1.7.0 samtools/1.17 jellyfish/2.3.0  trinity/2.14.0 python scipy-stack
 
-Trinity --seqType fq --max_memory 50G --left ${1}  --right ${2} --CPU 6
-```
+/home/ben/projects/rrg-ben/ben/2025_bin/meryl/build/bin/meryl-lookup -include \
+  -sequence ${1}*R1.fq.gz ${1}*R2.fq.gz \
+  -mers /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/in_allfemz_intersect_sum.meryl_but_not_allmalez_unionsum.meryl.meryl \
+  -output ${1}_fixedfemonly_R1.fq.gz ${1}_fixedfemonly_R2.fq.gz
 
-This either did not work or did not finish on computecanada. Instead it did work on info2020 in this directory:
-```
-/home/ben/2024_cliv_larg_pygm/raw_data/
-```
-using commands like this one:
-```
-/usr/local/trinity/Trinity --seqType fq --max_memory 120G --single 2024_pygm_femspecific_goodkmers.fq --CPU 12 --normalize_reads
-```
-as suggested here, I combined the paired and single end reads:
-```
-https://github.com/trinityrnaseq/trinityrnaseq/wiki/How-do-I-combine-reads%3F
-```
-Here is the assembly for X. pygmaeus with 29mers and 8 females, 8 males:
-```
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/fem_pygm
 ```
 
-# De novo assembled sex-specific contigs
+# Assemble sex-specific reads using spades
 
-Are here on graham:
 ```
-/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/raw_data/larg_pe_trim/combined_male_reads
+#!/bin/sh
+#SBATCH --job-name=spades
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=4
+#SBATCH --time=72:00:00
+#SBATCH --mem=125gb
+#SBATCH --output=spades.%J.out
+#SBATCH --error=spades.%J.err
+#SBATCH --account=rrg-ben
+
+
+module load StdEnv/2023 spades/4.2.0
+spades.py -1 ${1} -2 ${2} --isolate -o ${3}
+
 ```
+
+# Blast XL CDS to contigs
+```
+ blastn -query ../../../../2021_XL_v10_refgenome/XL_CDS_only_nospaces.fasta -db /project/6019307/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm/fem_pygm/2024_pygm_femspecific_goodkmers_trinity_out_dir.Trinity.fasta_blastable -outfmt "6 qseqid sseqid pident length evalue bitscore qcovhsp qcovs" -qcov_hsp_perc 80 -out XL_CDS_to_pygmfemspecific.txt
+```
+
 # Map to XL genome using minimap2
 
 ```
