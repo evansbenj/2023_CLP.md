@@ -1,3 +1,8 @@
+# Directory
+```
+/home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2026_pygm_mapped_to_boum
+```
+
 # Filter bams to include CDS only then calculate depth in windows
 
 There seems to be some background/noise due to repetitive regions. I'm going to try to calculate depth in windows using bams that only have reads mapped to CDS
@@ -25,5 +30,22 @@ awk 'BEGIN{OFS="\t"}{
 # Filter bamz
 
 ```
-samtools view -h -b -L Regions.bed alignments.bam > alignments_in_regions.bam
+#!/bin/sh
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --time=4:00:00
+#SBATCH --mem=8gb
+#SBATCH --output=samtools_subset.%J.out
+#SBATCH --error=samtools_subset.%J.err
+#SBATCH --account=rrg-ben
+
+# run by passing the path to the sorted bam files like this
+# sbatch ./2021_samtools_subset_bamfiles.sh directory region
+
+module load StdEnv/2020 samtools/1.12
+for file in ${1}*rg.bam
+do
+     samtools view -h -b -L /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2026_pygm_mapped_to_boum/XL_CDS_to_boum_gt150bp_gt80percentquery.bed ${file} > ${file}_CDS_only.bam
+    samtools index ${file}_CDS_only.bam
+done
 ```
