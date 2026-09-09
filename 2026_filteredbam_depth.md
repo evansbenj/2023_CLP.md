@@ -13,6 +13,7 @@ blastn \
 | awk '$4 >= 150 && $4/$5 >= 0.8' \
 > XL_CDS_to_boum_gt150bp_gt80percentquery.txt
 ```
+This will retain multiple hits for each XL query, but this is sensible since the Xboum genome is octoploid.
 
 Make a bedfile out of this.
 
