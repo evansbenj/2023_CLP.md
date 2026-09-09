@@ -16,6 +16,11 @@ blastn \
 This will retain multiple hits for each XL query, but this is sensible since the Xboum genome is octoploid.
 
 Make a bedfile out of this.
+```
+awk 'BEGIN{OFS="\t"}{
+    print $2, ($6<$7?$6:$7), ($6<$7?$7:$6), $1
+}' XL_CDS_to_boum_gt150bp_gt80percentquery.txt > XL_CDS_to_boum_gt150bp_gt80percentquery.bed
+```
 
 # Filter bamz
 
