@@ -41,6 +41,8 @@ Make meryl db for forward and reverse reads (together) like this:
 # Make intersection sum for female samples 
 This requires a kmer to be present in all samples from a given sex.
 
+* I am redoing this with pygm_Z23337 as a female and pygm_Z23340 as a male
+
 ```
 #!/bin/sh
 #SBATCH --job-name=meryl_intersect
