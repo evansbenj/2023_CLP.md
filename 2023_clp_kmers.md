@@ -1,8 +1,12 @@
 # Kmers!
 
-path for 2024_clp:
+path for pygm:
 ```
 /home/ben/projects/rrg-ben/ben/2023_cliv_larg_pyg/2024_raw_data_larg_pyg/2024_pygm
+```
+and cliv:
+```
+/home/ben/projects/rrg-ben/ben/2024_cliv_allo_WGS/fq/2024_cliv/trimmed_and_combined
 ```
 
 I'm redoing this with new meryl and no cookiecutter:
